@@ -1,5 +1,6 @@
 use std::fmt;
 
+#[derive(Debug)]
 pub struct Book {
     name: String
 }
@@ -16,6 +17,12 @@ impl fmt::Display for Book {
     }
 }
 
+impl PartialEq for Book {
+    fn eq(&self, other: &Self) -> bool {
+        self.name == other.name
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::Book;
@@ -24,5 +31,13 @@ mod tests {
     fn correct_display() {
         let book = Book { name: "Test Book".to_string() };
         assert_eq!(format!("{}", book), String::from("Test Book"));
+    }
+
+    #[test]
+    fn equal_name_equal_books() {
+        assert_eq!(
+            Book::new("Test Eq".to_string()),
+            Book::new("Test Eq".to_string())
+        );
     }
 }
