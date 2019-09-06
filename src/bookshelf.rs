@@ -23,6 +23,16 @@ impl Bookshelf {
     pub fn have(&self, book: &Book) -> bool {
         self.books.contains(book)
     }
+
+    pub fn difference(&self, other: &Self) -> Self {
+        Bookshelf {
+            books: self.books.difference(&other.books).cloned().collect()
+        }
+    }
+
+    pub fn iter(&self) -> impl Iterator<Item = &Book> {
+        self.books.iter()
+    }
 }
 
 impl PartialEq for Bookshelf {
@@ -51,5 +61,21 @@ mod tests {
         let mut bs = Bookshelf::new();
         bs.add(book.clone());
         assert_eq!(bs.have(&book), true);
+    }
+
+    #[test]
+    fn compare_bookshelf() {
+        let mut bs1 = Bookshelf::new();
+        bs1.add(Book::new(String::from("Test book1")));
+        bs1.add(Book::new(String::from("Test book2")));
+        let mut bs2 = Bookshelf::new();
+        bs2.add(Book::new(String::from("Test book2")));
+        bs2.add(Book::new(String::from("Test book3")));
+
+        let diff1_to_2: Vec<_> = bs1.difference(&bs2).iter().cloned().collect();
+        assert_eq!(diff1_to_2, [Book::new(String::from("Test book1"))]);
+
+        let diff2_to_1: Vec<_> = bs2.difference(&bs1).iter().cloned().collect();
+        assert_eq!(diff2_to_1, [Book::new(String::from("Test book3"))]);
     }
 }
