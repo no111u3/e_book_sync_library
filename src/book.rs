@@ -1,6 +1,6 @@
 use std::fmt;
 
-#[derive(Debug, Eq)]
+#[derive(Debug, Eq, Clone)]
 pub struct Book {
     name: String
 }
