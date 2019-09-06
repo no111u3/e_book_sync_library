@@ -1,6 +1,6 @@
 use std::fmt;
 
-#[derive(Debug)]
+#[derive(Debug, Eq)]
 pub struct Book {
     name: String
 }
@@ -20,6 +20,20 @@ impl fmt::Display for Book {
 impl PartialEq for Book {
     fn eq(&self, other: &Self) -> bool {
         self.name == other.name
+    }
+}
+
+use std::cmp::Ordering;
+
+impl PartialOrd for Book {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl Ord for Book {
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.name.cmp(&other.name)
     }
 }
 
