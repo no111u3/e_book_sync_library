@@ -1,9 +1,12 @@
 mod book;
 mod bookshelf;
-use crate::book::Book;
+
+use clap::{Arg, App, SubCommand};
 
 fn main() {
-    println!("Sync your e-book library");
-    let book = Book::new(String::from("My Book"));
-    println!("Book name is: {}", book);
+    let matches = App::new("Sync your e-book library")
+        .version("0.1.0")
+        .author("Boris V. <no111u3@gmail.com>")
+        .about("Synchonize e-book with your local e-library")
+        .get_matches();
 }
