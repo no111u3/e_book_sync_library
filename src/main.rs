@@ -1,5 +1,6 @@
 mod book;
 mod bookshelf;
+mod indexer;
 
 use clap::{Arg, App, SubCommand};
 
