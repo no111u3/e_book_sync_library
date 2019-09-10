@@ -3,7 +3,7 @@ mod bookshelf;
 mod indexer;
 mod updater;
 
-use clap::{Arg, App, SubCommand};
+use clap::{App, Arg, SubCommand};
 
 fn main() {
     let matches = App::new("Sync your e-book library")

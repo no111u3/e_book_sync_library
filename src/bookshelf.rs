@@ -8,21 +8,21 @@ type Books = BTreeSet<Book>;
 #[derive(Debug)]
 pub struct Bookshelf {
     books: Books,
-    path: PathBuf
+    path: PathBuf,
 }
 
 impl Bookshelf {
     pub fn new() -> Self {
         Bookshelf {
             books: BTreeSet::new(),
-            path: PathBuf::new()
+            path: PathBuf::new(),
         }
     }
 
     pub fn from(path: PathBuf) -> Self {
         Bookshelf {
             books: BTreeSet::new(),
-            path
+            path,
         }
     }
 
@@ -41,7 +41,7 @@ impl Bookshelf {
     pub fn difference(&self, other: &Self) -> Self {
         Bookshelf {
             books: self.books.difference(&other.books).cloned().collect(),
-            path: self.path.clone()
+            path: self.path.clone(),
         }
     }
 
@@ -65,14 +65,14 @@ mod tests {
     #[test]
     fn create() {
         use std::collections::BTreeSet;
-    
+
         let bs1 = Bookshelf::new();
         let bs2 = Bookshelf {
             books: BTreeSet::new(),
-            path: PathBuf::new()
+            path: PathBuf::new(),
         };
         assert_eq!(bs1, bs2);
-        
+
         let bs3 = Bookshelf::from(PathBuf::from("some/test/path"));
         assert_eq!(bs2, bs3);
     }
@@ -85,7 +85,7 @@ mod tests {
 
     #[test]
     fn add_book() {
-        let book = Book::new(String::from("Test book")); 
+        let book = Book::new(String::from("Test book"));
         let mut bs = Bookshelf::new();
         bs.add(book.clone());
         assert_eq!(bs.have(&book), true);
