@@ -1,5 +1,5 @@
 use std::fs;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use crate::bookshelf::Bookshelf;
 use crate::indexer::Indexer;
@@ -34,7 +34,13 @@ impl Updater {
     fn copy_files(&self, books: Bookshelf, destination: PathBuf) {
         for b in books.iter() {
             let mut dest_path = destination.to_path_buf();
-            dest_path.push(b.get_path().file_name().unwrap().to_str().unwrap());
+            dest_path.push(b.get_path().strip_prefix(books.get_path()).unwrap());
+            let dest_path_dir = dest_path.parent().unwrap();
+            
+            if !dest_path_dir.exists() {
+                fs::create_dir(dest_path_dir);
+            }
+            
             match fs::copy(b.get_path(), dest_path) {
                 Err(e) => panic!("Copy error: {}", e),
                 Ok(_) => (),
@@ -123,6 +129,8 @@ mod tests {
             fs::remove_file("tests/copy_files/foreign/file_one.txt")?;
             fs::remove_file("tests/copy_files/foreign/file_two.txt")?;
             fs::remove_file("tests/copy_files/foreign/file_three.txt")?;
+            fs::remove_file("tests/copy_files/foreign/test/file_four.txt")?;
+            fs::remove_dir("tests/copy_files/foreign/test")?;
             Ok(())
         })();
         match delete {
@@ -136,6 +144,7 @@ mod tests {
         assert_eq!(
             ixer_res,
             [
+                Book::new(String::from("file_four.txt")),
                 Book::new(String::from("file_one.txt")),
                 Book::new(String::from("file_three.txt")),
                 Book::new(String::from("file_two.txt")),
