@@ -1,13 +1,32 @@
 use std::fmt;
+use std::path::PathBuf;
 
 #[derive(Debug, Eq, Clone)]
 pub struct Book {
-    name: String
+    name: String,
+    path: PathBuf
 }
 
 impl Book {
     pub fn new(name: String) -> Self {
-        Book { name }
+        let path = name.clone();
+        Book { name, path: PathBuf::from(path) }
+    }
+
+    pub fn from(path: PathBuf) -> Self{
+        let name =
+            path.file_name().unwrap()
+                .to_str().unwrap()
+                .to_string();
+        Book { name, path }
+    }
+
+    pub fn get_name(&self) -> &String {
+        &self.name
+    }
+    
+    pub fn get_path(&self) -> &PathBuf {
+        &self.path
     }
 }
 
@@ -40,10 +59,18 @@ impl Ord for Book {
 #[cfg(test)]
 mod tests {
     use super::Book;
-
+    use std::path::PathBuf;
+    
+    #[test]
+    fn path_name_correct() {
+        let book = Book::from(PathBuf::from("/local/test_book.txt"));
+        assert_eq!(book.get_name(), &String::from("test_book.txt"));
+        assert_eq!(book.get_path(), &PathBuf::from("/local/test_book.txt"));
+    }
+    
     #[test]
     fn correct_display() {
-        let book = Book { name: "Test Book".to_string() };
+        let book = Book { name: "Test Book".to_string(), path: PathBuf::new() };
         assert_eq!(format!("{}", book), String::from("Test Book"));
     }
 
@@ -53,5 +80,10 @@ mod tests {
             Book::new("Test Eq".to_string()),
             Book::new("Test Eq".to_string())
         );
+
+        assert_eq!(
+            Book::from(PathBuf::from("/local/test_book.txt")),
+            Book::from(PathBuf::from("/foreign/test_book.txt"))
+        )
     }
 }
