@@ -18,10 +18,7 @@ impl Indexer {
             .filter(|e| e.file_type().is_file())
             .fold(Bookshelf::new(), |mut bs, entry| {
                 bs.add(
-                    Book::new(entry.path()
-                        .file_name().unwrap()
-                        .to_str().unwrap()
-                        .to_string())
+                    Book::from(entry.path().to_path_buf())
                 );
                 bs
         })
