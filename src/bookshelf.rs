@@ -1,4 +1,5 @@
 use std::collections::BTreeSet;
+use std::path::PathBuf;
 
 use crate::book::Book;
 
@@ -7,13 +8,26 @@ type Books = BTreeSet<Book>;
 #[derive(Debug)]
 pub struct Bookshelf {
     books: Books,
+    path: PathBuf
 }
 
 impl Bookshelf {
     pub fn new() -> Self {
         Bookshelf {
-            books: BTreeSet::new()
+            books: BTreeSet::new(),
+            path: PathBuf::new()
         }
+    }
+
+    pub fn from(path: PathBuf) -> Self {
+        Bookshelf {
+            books: BTreeSet::new(),
+            path
+        }
+    }
+
+    pub fn get_path(&self) -> &PathBuf {
+        &self.path
     }
 
     pub fn add(&mut self, book: Book) -> bool {
@@ -26,7 +40,8 @@ impl Bookshelf {
 
     pub fn difference(&self, other: &Self) -> Self {
         Bookshelf {
-            books: self.books.difference(&other.books).cloned().collect()
+            books: self.books.difference(&other.books).cloned().collect(),
+            path: self.path.clone()
         }
     }
 
@@ -45,14 +60,27 @@ impl PartialEq for Bookshelf {
 mod tests {
     use super::Bookshelf;
     use crate::book::Book;
+    use std::path::PathBuf;
 
     #[test]
     fn create() {
         use std::collections::BTreeSet;
     
         let bs1 = Bookshelf::new();
-        let bs2 = Bookshelf { books: BTreeSet::new() };
+        let bs2 = Bookshelf {
+            books: BTreeSet::new(),
+            path: PathBuf::new()
+        };
         assert_eq!(bs1, bs2);
+        
+        let bs3 = Bookshelf::from(PathBuf::from("some/test/path"));
+        assert_eq!(bs2, bs3);
+    }
+
+    #[test]
+    fn correct_path() {
+        let bs = Bookshelf::from(PathBuf::from("some/test/path"));
+        assert_eq!(bs.get_path(), &PathBuf::from("some/test/path"));
     }
 
     #[test]
