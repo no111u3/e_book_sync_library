@@ -1,3 +1,4 @@
+use std::path::PathBuf;
 use walkdir::WalkDir;
 
 use crate::bookshelf::Bookshelf;
@@ -16,12 +17,14 @@ impl Indexer {
         WalkDir::new(self.path.clone())
             .into_iter().filter_map(|e| e.ok())
             .filter(|e| e.file_type().is_file())
-            .fold(Bookshelf::new(), |mut bs, entry| {
-                bs.add(
+            .fold(Bookshelf::from(PathBuf::from(self.path.clone())),
+                |mut bs, entry| {
+                    bs.add(
                     Book::from(entry.path().to_path_buf())
-                );
-                bs
-        })
+                    );
+                    bs
+                }
+            )
     }
 }
 
