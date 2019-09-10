@@ -36,11 +36,11 @@ impl Updater {
             let mut dest_path = destination.to_path_buf();
             dest_path.push(b.get_path().strip_prefix(books.get_path()).unwrap());
             let dest_path_dir = dest_path.parent().unwrap();
-            
+
             if !dest_path_dir.exists() {
                 fs::create_dir(dest_path_dir);
             }
-            
+
             match fs::copy(b.get_path(), dest_path) {
                 Err(e) => panic!("Copy error: {}", e),
                 Ok(_) => (),
