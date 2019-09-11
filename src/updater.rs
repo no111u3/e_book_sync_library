@@ -70,6 +70,7 @@ mod tests {
     use std::fs;
 
     use super::Updater;
+    use super::Update;
     use crate::book::Book;
 
     #[test]
@@ -156,6 +157,42 @@ mod tests {
         let (from_local, from_foreign) = uper.cross_diff(uper.scan_area());
 
         let ixer_res: Vec<_> = from_local.iter().cloned().collect();
+        assert_eq!(ixer_res, []);
+    }
+
+    #[test]
+    fn update_files() {
+        let uper = Updater::new(
+            "tests/update_files/local".to_string(),
+            "tests/update_files/foreign".to_string(),
+        );
+        
+        let delete: std::io::Result<()> = (|| {
+            fs::remove_file("tests/update_files/foreign/file_three.txt")?;
+            fs::remove_file("tests/update_files/local/file_four.txt")?;
+            Ok(())
+        })();
+        match delete {
+            Err(e) => panic!("Delete error: {}", e),
+            Ok(_) => (),
+        }
+        
+        let (from_local, from_foreign) = uper.cross_diff(uper.scan_area());
+
+        let ixer_res: Vec<_> = from_local.iter().cloned().collect();
+        assert_eq!(ixer_res, [Book::new(String::from("file_three.txt")),]);
+
+        let ixer_res: Vec<_> = from_foreign.iter().cloned().collect();
+        assert_eq!(ixer_res, [Book::new(String::from("file_four.txt")),]);
+
+        uper.update(Update::Bidirectional);
+
+        let (from_local, from_foreign) = uper.cross_diff(uper.scan_area());
+
+        let ixer_res: Vec<_> = from_local.iter().cloned().collect();
+        assert_eq!(ixer_res, []);
+
+        let ixer_res: Vec<_> = from_foreign.iter().cloned().collect();
         assert_eq!(ixer_res, []);
     }
 }
