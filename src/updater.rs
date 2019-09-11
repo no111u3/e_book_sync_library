@@ -69,8 +69,8 @@ impl Updater {
 mod tests {
     use std::fs;
 
-    use super::Updater;
     use super::Update;
+    use super::Updater;
     use crate::book::Book;
 
     #[test]
@@ -166,7 +166,7 @@ mod tests {
             "tests/update_files/local".to_string(),
             "tests/update_files/foreign".to_string(),
         );
-        
+
         let delete: std::io::Result<()> = (|| {
             fs::remove_file("tests/update_files/foreign/file_three.txt")?;
             fs::remove_file("tests/update_files/local/file_four.txt")?;
@@ -176,7 +176,7 @@ mod tests {
             Err(e) => panic!("Delete error: {}", e),
             Ok(_) => (),
         }
-        
+
         let (from_local, from_foreign) = uper.cross_diff(uper.scan_area());
 
         let ixer_res: Vec<_> = from_local.iter().cloned().collect();
