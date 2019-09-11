@@ -15,6 +15,37 @@ pub enum Update {
     Bidirectional,
 }
 
+#[derive(Debug, PartialEq, Clone)]
+pub enum BookCopyStatus {
+    Copied,
+    NotCopiedWithError(String),
+}
+
+pub struct BookStatus {
+    name: String,
+    src: PathBuf,
+    dst: PathBuf,
+    status: BookCopyStatus,
+}
+
+impl BookStatus {
+    pub fn get_name(&self) -> &String {
+        &self.name
+    }
+
+    pub fn get_src(&self) -> &PathBuf {
+        &self.src
+    }
+
+    pub fn get_dst(&self) -> &PathBuf {
+        &self.dst
+    }
+
+    pub fn get_status(&self) -> &BookCopyStatus {
+        &self.status
+    }
+}
+
 impl Updater {
     pub fn new(local: String, foreign: String) -> Self {
         Updater { local, foreign }
@@ -31,24 +62,32 @@ impl Updater {
         (local.difference(&foreign), foreign.difference(&local))
     }
 
-    fn copy_files(&self, books: Bookshelf, destination: PathBuf) {
-        for b in books.iter() {
-            let mut dest_path = destination.to_path_buf();
-            dest_path.push(b.get_path().strip_prefix(books.get_path()).unwrap());
-            let dest_path_dir = dest_path.parent().unwrap();
+    fn copy_files(&self, books: Bookshelf, destination: PathBuf) -> Vec<BookStatus> {
+        books
+            .iter()
+            .map(|b| {
+                let mut dest_path = destination.to_path_buf();
+                dest_path.push(b.get_path().strip_prefix(books.get_path()).unwrap());
+                let dest_path_dir = dest_path.parent().unwrap();
 
-            if !dest_path_dir.exists() {
-                fs::create_dir(dest_path_dir);
-            }
+                if !dest_path_dir.exists() {
+                    fs::create_dir(dest_path_dir);
+                }
 
-            match fs::copy(b.get_path(), dest_path) {
-                Err(e) => panic!("Copy error: {}", e),
-                Ok(_) => (),
-            }
-        }
+                BookStatus {
+                    name: b.get_name().to_string(),
+                    src: b.get_path().to_path_buf(),
+                    dst: dest_path.to_path_buf(),
+                    status: match fs::copy(b.get_path(), dest_path) {
+                        Err(e) => BookCopyStatus::NotCopiedWithError(e.to_string()),
+                        Ok(_) => BookCopyStatus::Copied,
+                    },
+                }
+            })
+            .collect()
     }
 
-    pub fn update(&self, update: Update) {
+    pub fn update(&self, update: Update) -> Vec<BookStatus> {
         let (from_local, from_foreign) = self.cross_diff(self.scan_area());
         match update {
             Update::OnlyFromLocal => {
@@ -58,8 +97,12 @@ impl Updater {
                 self.copy_files(from_foreign, PathBuf::from(self.local.clone()))
             }
             Update::Bidirectional => {
-                self.copy_files(from_local, PathBuf::from(self.foreign.clone()));
-                self.copy_files(from_foreign, PathBuf::from(self.local.clone()));
+                let mut results_of_copy: Vec<BookStatus> = Vec::new();
+                results_of_copy
+                    .append(&mut self.copy_files(from_local, PathBuf::from(self.foreign.clone())));
+                results_of_copy
+                    .append(&mut self.copy_files(from_foreign, PathBuf::from(self.local.clone())));
+                results_of_copy
             }
         }
     }
@@ -69,6 +112,7 @@ impl Updater {
 mod tests {
     use std::fs;
 
+    use super::BookCopyStatus;
     use super::Update;
     use super::Updater;
     use crate::book::Book;
@@ -152,7 +196,20 @@ mod tests {
             ]
         );
 
-        uper.copy_files(from_local, from_foreign.get_path().to_path_buf());
+        let results_of_copy = uper
+            .copy_files(from_local, from_foreign.get_path().to_path_buf())
+            .iter()
+            .map(|e| (e.get_name().to_string(), e.get_status().clone()))
+            .collect::<Vec<(String, BookCopyStatus)>>();
+        assert_eq!(
+            results_of_copy,
+            [
+                (String::from("file_four.txt"), BookCopyStatus::Copied),
+                (String::from("file_one.txt"), BookCopyStatus::Copied),
+                (String::from("file_three.txt"), BookCopyStatus::Copied),
+                (String::from("file_two.txt"), BookCopyStatus::Copied),
+            ]
+        );
 
         let (from_local, from_foreign) = uper.cross_diff(uper.scan_area());
 
@@ -185,7 +242,18 @@ mod tests {
         let ixer_res: Vec<_> = from_foreign.iter().cloned().collect();
         assert_eq!(ixer_res, [Book::new(String::from("file_four.txt")),]);
 
-        uper.update(Update::Bidirectional);
+        let results_of_copy = uper
+            .update(Update::Bidirectional)
+            .iter()
+            .map(|e| (e.get_name().to_string(), e.get_status().clone()))
+            .collect::<Vec<(String, BookCopyStatus)>>();
+        assert_eq!(
+            results_of_copy,
+            [
+                (String::from("file_three.txt"), BookCopyStatus::Copied),
+                (String::from("file_four.txt"), BookCopyStatus::Copied),
+            ]
+        );
 
         let (from_local, from_foreign) = uper.cross_diff(uper.scan_area());
 
