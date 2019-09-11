@@ -1,5 +1,5 @@
 use std::fs;
-use std::path::{Path, PathBuf};
+use std::path::{PathBuf};
 
 use crate::bookshelf::Bookshelf;
 use crate::indexer::Indexer;
@@ -124,9 +124,12 @@ impl Updater {
                     name: book_src.get_name().to_string(),
                     src: book_dst.get_path().to_path_buf(),
                     dst: dest_path.to_path_buf(),
-                    status: match fs::rename(book_dst.get_path(), dest_path) {
-                        Err(e) => BookCopyMoveStatus::NotMoviedWithError(e.to_string()),
-                        Ok(_) => BookCopyMoveStatus::Movied,
+                    status: {
+                        
+                        match fs::rename(book_dst.get_path(), dest_path) {
+                            Err(e) => BookCopyMoveStatus::NotMoviedWithError(e.to_string()),
+                            Ok(_) => BookCopyMoveStatus::Movied,
+                        }
                     },
                 }
             })
@@ -157,10 +160,8 @@ impl Updater {
 #[cfg(test)]
 mod tests {
     use std::fs;
-    use std::path::PathBuf;
 
     use super::BookCopyMoveStatus;
-    use super::BookStatus;
     use super::Update;
     use super::Updater;
     use crate::book::Book;
@@ -259,7 +260,7 @@ mod tests {
             ]
         );
 
-        let (from_local, from_foreign) = uper.cross_diff(uper.scan_area());
+        let (from_local, _) = uper.cross_diff(uper.scan_area());
 
         let ixer_res: Vec<_> = from_local.iter().cloned().collect();
         assert_eq!(ixer_res, []);
