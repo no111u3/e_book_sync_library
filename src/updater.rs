@@ -1,5 +1,5 @@
 use std::fs;
-use std::path::{PathBuf};
+use std::path::PathBuf;
 
 use crate::bookshelf::Bookshelf;
 use crate::indexer::Indexer;
@@ -125,7 +125,6 @@ impl Updater {
                     src: book_dst.get_path().to_path_buf(),
                     dst: dest_path.to_path_buf(),
                     status: {
-                        
                         match fs::rename(book_dst.get_path(), dest_path) {
                             Err(e) => BookCopyMoveStatus::NotMoviedWithError(e.to_string()),
                             Ok(_) => BookCopyMoveStatus::Movied,
