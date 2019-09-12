@@ -73,8 +73,8 @@ fn main() {
             "{} {} <= from: {} to: {}",
             book_status.get_name(),
             match book_status.get_status() {
-                BookCopyMoveStatus::Movied => String::from("Movied"),
-                BookCopyMoveStatus::NotMoviedWithError(e) => format!("Move error: {}", e),
+                BookCopyMoveStatus::Moved => String::from("Movied"),
+                BookCopyMoveStatus::NotMovedWithError(e) => format!("Move error: {}", e),
                 _ => String::from("Unexpected error"),
             },
             book_status

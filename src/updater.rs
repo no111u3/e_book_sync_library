@@ -21,8 +21,8 @@ pub enum Update {
 pub enum BookCopyMoveStatus {
     Copied,
     NotCopiedWithError(String),
-    Movied,
-    NotMoviedWithError(String),
+    Moved,
+    NotMovedWithError(String),
 }
 
 #[derive(Debug, PartialEq, Clone)]
@@ -128,8 +128,8 @@ impl Updater {
                     dst: dest_path.to_path_buf(),
                     status: {
                         match fs::rename(book_dst.get_path(), dest_path) {
-                            Err(e) => BookCopyMoveStatus::NotMoviedWithError(e.to_string()),
-                            Ok(_) => BookCopyMoveStatus::Movied,
+                            Err(e) => BookCopyMoveStatus::NotMovedWithError(e.to_string()),
+                            Ok(_) => BookCopyMoveStatus::Moved,
                         }
                     },
                 }
@@ -300,7 +300,7 @@ mod tests {
             .collect::<Vec<(String, BookCopyMoveStatus)>>();
         assert_eq!(
             results_of_move,
-            [(String::from("file_four.txt"), BookCopyMoveStatus::Movied),]
+            [(String::from("file_four.txt"), BookCopyMoveStatus::Moved),]
         );
     }
 
