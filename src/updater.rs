@@ -11,7 +11,9 @@ pub struct Updater {
 
 pub enum Update {
     OnlyFromLocal,
+    OnlyFromLocalSync,
     OnlyFromForeign,
+    OnlyFromForeignSync,
     Bidirectional,
 }
 
@@ -136,15 +138,19 @@ impl Updater {
     }
 
     pub fn update(&self, update: Update) -> Vec<BookStatus> {
-        let (from_local, from_foreign) = self.cross_diff(self.scan_area());
+        use Update::*;
+
+        let (from_local, from_foreign) = match update {
+            Bidirectional | OnlyFromLocal | OnlyFromForeign => self.cross_diff(self.scan_area()),
+            OnlyFromLocalSync | OnlyFromForeignSync => self.scan_area(),
+        };
+
         match update {
-            Update::OnlyFromLocal => {
-                self.copy_files(from_local, PathBuf::from(self.foreign.clone()))
-            }
-            Update::OnlyFromForeign => {
-                self.copy_files(from_foreign, PathBuf::from(self.local.clone()))
-            }
-            Update::Bidirectional => {
+            OnlyFromLocal => self.copy_files(from_local, PathBuf::from(self.foreign.clone())),
+            OnlyFromLocalSync => self.move_files(from_local, from_foreign),
+            OnlyFromForeign => self.copy_files(from_foreign, PathBuf::from(self.local.clone())),
+            OnlyFromForeignSync => self.move_files(from_foreign, from_local),
+            Bidirectional => {
                 let mut results_of_copy: Vec<BookStatus> = Vec::new();
                 results_of_copy
                     .append(&mut self.copy_files(from_local, PathBuf::from(self.foreign.clone())));
