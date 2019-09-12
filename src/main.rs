@@ -3,6 +3,8 @@ mod bookshelf;
 mod indexer;
 mod updater;
 
+use std::path::PathBuf;
+
 use clap::{App, Arg};
 
 use updater::{BookCopyMoveStatus, Update, Updater};
@@ -39,6 +41,9 @@ fn main() {
 
     let uper = Updater::new(source.to_string(), destination.to_string());
 
+    let path_src = PathBuf::from(source);
+    let path_dst = PathBuf::from(destination);
+
     for book_status in uper.update(Update::OnlyFromLocal) {
         println!(
             "{} {} => from: {} to: {}",
@@ -48,8 +53,18 @@ fn main() {
                 BookCopyMoveStatus::NotCopiedWithError(e) => format!("Copy error: {}", e),
                 _ => String::from("Unexpected error"),
             },
-            book_status.get_src().to_str().unwrap(),
-            book_status.get_dst().to_str().unwrap()
+            book_status
+                .get_src()
+                .strip_prefix(path_src.clone())
+                .unwrap()
+                .to_str()
+                .unwrap(),
+            book_status
+                .get_dst()
+                .strip_prefix(path_dst.clone())
+                .unwrap()
+                .to_str()
+                .unwrap()
         );
     }
 
@@ -62,8 +77,18 @@ fn main() {
                 BookCopyMoveStatus::NotMoviedWithError(e) => format!("Move error: {}", e),
                 _ => String::from("Unexpected error"),
             },
-            book_status.get_src().to_str().unwrap(),
-            book_status.get_dst().to_str().unwrap()
+            book_status
+                .get_src()
+                .strip_prefix(path_src.clone())
+                .unwrap()
+                .to_str()
+                .unwrap(),
+            book_status
+                .get_dst()
+                .strip_prefix(path_src.clone())
+                .unwrap()
+                .to_str()
+                .unwrap()
         );
     }
 }
