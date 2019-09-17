@@ -1,6 +1,6 @@
 [package]
 name = "e_book_sync_library"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["Boris Vinogradov <no111u3@gmail.com>"]
 description = "Synchonize e-book with your local e-library"
 edition = "2018"
