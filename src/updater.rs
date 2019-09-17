@@ -5,8 +5,8 @@ use crate::bookshelf::Bookshelf;
 use crate::indexer::Indexer;
 
 pub struct Updater {
-    local: String,
-    foreign: String,
+    local: PathBuf,
+    foreign: PathBuf,
 }
 
 pub enum Update {
@@ -52,14 +52,17 @@ impl BookStatus {
 }
 
 impl Updater {
-    pub fn new(local: String, foreign: String) -> Self {
-        Updater { local, foreign }
+    pub fn new(local: PathBuf, foreign: PathBuf) -> Self {
+        Updater {
+            local: local,
+            foreign: foreign,
+        }
     }
 
     fn scan_area(&self) -> (Bookshelf, Bookshelf) {
         (
-            Indexer::new(PathBuf::from(self.local.clone())).index(),
-            Indexer::new(PathBuf::from(self.foreign.clone())).index(),
+            Indexer::new(self.local.clone()).index(),
+            Indexer::new(self.foreign.clone()).index(),
         )
     }
 
@@ -146,16 +149,14 @@ impl Updater {
         };
 
         match update {
-            OnlyFromLocal => self.copy_files(from_local, PathBuf::from(self.foreign.clone())),
+            OnlyFromLocal => self.copy_files(from_local, self.foreign.clone()),
             OnlyFromLocalSync => self.move_files(from_local, from_foreign),
-            OnlyFromForeign => self.copy_files(from_foreign, PathBuf::from(self.local.clone())),
+            OnlyFromForeign => self.copy_files(from_foreign, self.local.clone()),
             OnlyFromForeignSync => self.move_files(from_foreign, from_local),
             Bidirectional => {
                 let mut results_of_copy: Vec<BookStatus> = Vec::new();
-                results_of_copy
-                    .append(&mut self.copy_files(from_local, PathBuf::from(self.foreign.clone())));
-                results_of_copy
-                    .append(&mut self.copy_files(from_foreign, PathBuf::from(self.local.clone())));
+                results_of_copy.append(&mut self.copy_files(from_local, self.foreign.clone()));
+                results_of_copy.append(&mut self.copy_files(from_foreign, self.local.clone()));
                 results_of_copy
             }
         }
@@ -165,6 +166,7 @@ impl Updater {
 #[cfg(test)]
 mod tests {
     use std::fs;
+    use std::path::PathBuf;
 
     use super::BookCopyMoveStatus;
     use super::Update;
@@ -174,8 +176,8 @@ mod tests {
     #[test]
     fn scan_area() {
         let uper = Updater::new(
-            "tests/scan_area/local".to_string(),
-            "tests/scan_area/foreign".to_string(),
+            PathBuf::from("tests/scan_area/local"),
+            PathBuf::from("tests/scan_area/foreign"),
         );
 
         let (local, foreign) = uper.scan_area();
@@ -204,8 +206,8 @@ mod tests {
     #[test]
     fn cross_diff() {
         let uper = Updater::new(
-            "tests/scan_area/local".to_string(),
-            "tests/scan_area/foreign".to_string(),
+            PathBuf::from("tests/scan_area/local"),
+            PathBuf::from("tests/scan_area/foreign"),
         );
 
         let (from_local, from_foreign) = uper.cross_diff(uper.scan_area());
@@ -220,8 +222,8 @@ mod tests {
     #[test]
     fn copy_files() {
         let uper = Updater::new(
-            "tests/copy_files/local".to_string(),
-            "tests/copy_files/foreign".to_string(),
+            PathBuf::from("tests/copy_files/local"),
+            PathBuf::from("tests/copy_files/foreign"),
         );
 
         let delete: std::io::Result<()> = (|| {
@@ -274,8 +276,8 @@ mod tests {
     #[test]
     fn move_files() {
         let uper = Updater::new(
-            "tests/move_files/local".to_string(),
-            "tests/move_files/foreign".to_string(),
+            PathBuf::from("tests/move_files/local"),
+            PathBuf::from("tests/move_files/foreign"),
         );
 
         let delete: std::io::Result<()> = (|| {
@@ -307,8 +309,8 @@ mod tests {
     #[test]
     fn update_files() {
         let uper = Updater::new(
-            "tests/update_files/local".to_string(),
-            "tests/update_files/foreign".to_string(),
+            PathBuf::from("tests/update_files/local"),
+            PathBuf::from("tests/update_files/foreign"),
         );
 
         let delete: std::io::Result<()> = (|| {

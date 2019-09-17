@@ -37,12 +37,16 @@ fn main() {
     let source = matches.value_of("source").unwrap();
     let destination = matches.value_of("destination").unwrap();
 
-    println!("Sync: local::{} <-> device::{}", source, destination);
+    let source = PathBuf::from(source);
+    let destination = PathBuf::from(destination);
 
-    let uper = Updater::new(source.to_string(), destination.to_string());
+    println!(
+        "Sync: local::{} <-> device::{}",
+        source.to_str().unwrap(),
+        destination.to_str().unwrap()
+    );
 
-    let path_src = PathBuf::from(source);
-    let path_dst = PathBuf::from(destination);
+    let uper = Updater::new(source.clone(), destination.clone());
 
     for book_status in uper.update(Update::OnlyFromLocal) {
         println!(
@@ -55,13 +59,13 @@ fn main() {
             },
             book_status
                 .get_src()
-                .strip_prefix(path_src.clone())
+                .strip_prefix(&source)
                 .unwrap()
                 .to_str()
                 .unwrap(),
             book_status
                 .get_dst()
-                .strip_prefix(path_dst.clone())
+                .strip_prefix(&destination)
                 .unwrap()
                 .to_str()
                 .unwrap()
@@ -79,13 +83,13 @@ fn main() {
             },
             book_status
                 .get_src()
-                .strip_prefix(path_src.clone())
+                .strip_prefix(&source)
                 .unwrap()
                 .to_str()
                 .unwrap(),
             book_status
                 .get_dst()
-                .strip_prefix(path_src.clone())
+                .strip_prefix(&source)
                 .unwrap()
                 .to_str()
                 .unwrap()
