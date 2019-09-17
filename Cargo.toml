@@ -8,3 +8,4 @@ edition = "2018"
 [dependencies]
 clap = "2.33.0"
 walkdir = "2.2.9"
+yaml-rust = "0.4.3"
