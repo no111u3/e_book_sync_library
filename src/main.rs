@@ -1,5 +1,6 @@
 mod book;
 mod bookshelf;
+mod config;
 mod indexer;
 mod updater;
 

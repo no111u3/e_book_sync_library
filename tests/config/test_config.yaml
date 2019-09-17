@@ -1,0 +1,5 @@
+source:
+    /test/path/to_source
+
+destination:
+    /test/path/to_destination
