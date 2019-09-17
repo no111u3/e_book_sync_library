@@ -5,11 +5,11 @@ use crate::book::Book;
 use crate::bookshelf::Bookshelf;
 
 pub struct Indexer {
-    path: String,
+    path: PathBuf,
 }
 
 impl Indexer {
-    pub fn new(path: String) -> Self {
+    pub fn new(path: PathBuf) -> Self {
         Indexer { path }
     }
 
@@ -19,7 +19,7 @@ impl Indexer {
             .filter_map(|e| e.ok())
             .filter(|e| e.file_type().is_file())
             .fold(
-                Bookshelf::from(PathBuf::from(self.path.clone())),
+                Bookshelf::from(self.path.clone()),
                 |mut bs, entry| {
                     bs.add(Book::from(entry.path().to_path_buf()));
                     bs
@@ -34,9 +34,11 @@ mod tests {
 
     #[test]
     fn iterate() {
+        use std::path::PathBuf;
+    
         use crate::book::Book;
 
-        let ixer = Indexer::new("tests/iterate".to_string());
+        let ixer = Indexer::new(PathBuf::from("tests/iterate"));
         let ixer_res: Vec<_> = ixer.index().iter().cloned().collect();
         assert_eq!(
             ixer_res,

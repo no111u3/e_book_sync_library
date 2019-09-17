@@ -58,8 +58,8 @@ impl Updater {
 
     fn scan_area(&self) -> (Bookshelf, Bookshelf) {
         (
-            Indexer::new(self.local.clone()).index(),
-            Indexer::new(self.foreign.clone()).index(),
+            Indexer::new(PathBuf::from(self.local.clone())).index(),
+            Indexer::new(PathBuf::from(self.foreign.clone())).index(),
         )
     }
 
