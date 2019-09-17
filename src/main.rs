@@ -8,6 +8,7 @@ use std::path::PathBuf;
 
 use clap::{App, Arg};
 
+use config::Config;
 use updater::{BookCopyMoveStatus, Update, Updater};
 
 fn main() {
@@ -21,7 +22,6 @@ fn main() {
                 .long("src")
                 .value_name("SRC")
                 .help("Source sync directory, local folder")
-                .required(true)
                 .takes_value(true),
         )
         .arg(
@@ -30,16 +30,30 @@ fn main() {
                 .long("dst")
                 .value_name("DST")
                 .help("Destination directory, e-ink device folder")
-                .required(true)
+                .takes_value(true),
+        )
+        .arg(
+            Arg::with_name("config")
+                .short("c")
+                .long("cfg")
+                .value_name("CONFIG.yaml")
+                .help("Program configuration file with source/destination sync folders")
                 .takes_value(true),
         )
         .get_matches();
 
-    let source = matches.value_of("source").unwrap();
-    let destination = matches.value_of("destination").unwrap();
+    let (source, destination) = match (matches.value_of("source"), matches.value_of("destination"))
+    {
+        (Some(source), Some(destination)) => (PathBuf::from(source), PathBuf::from(destination)),
+        (_, _) => match matches.value_of("config") {
+            Some(config) => {
+                let config = Config::new(PathBuf::from(config));
 
-    let source = PathBuf::from(source);
-    let destination = PathBuf::from(destination);
+                config.parse()
+            }
+            _ => (PathBuf::new(), PathBuf::new()),
+        },
+    };
 
     println!(
         "Sync: local::{} <-> device::{}",
