@@ -78,17 +78,23 @@ impl Updater {
                 dest_path.push(b.get_path().strip_prefix(books.get_path()).unwrap());
                 let dest_path_dir = dest_path.parent().unwrap();
 
-                if !dest_path_dir.exists() {
-                    fs::create_dir(dest_path_dir);
-                }
+                let status = if !dest_path_dir.exists() {
+                    fs::create_dir(dest_path_dir)
+                } else {
+                    Ok(())
+                };
 
                 BookStatus {
                     name: b.get_name().to_string(),
                     src: b.get_path().to_path_buf(),
                     dst: dest_path.to_path_buf(),
-                    status: match fs::copy(b.get_path(), dest_path) {
-                        Err(e) => BookCopyMoveStatus::NotCopiedWithError(e.to_string()),
-                        Ok(_) => BookCopyMoveStatus::Copied,
+                    status: if let Ok(_) = status {
+                        match fs::copy(b.get_path(), dest_path) {
+                            Err(e) => BookCopyMoveStatus::NotCopiedWithError(e.to_string()),
+                            Ok(_) => BookCopyMoveStatus::Copied,
+                        }
+                    } else {
+                        BookCopyMoveStatus::NotCopiedWithError(status.err().unwrap().to_string())
                     },
                 }
             })
@@ -121,18 +127,24 @@ impl Updater {
                 );
                 let dest_path_dir = dest_path.parent().unwrap();
 
-                if !dest_path_dir.exists() {
-                    fs::create_dir(dest_path_dir);
-                }
+                let status = if !dest_path_dir.exists() {
+                    fs::create_dir(dest_path_dir)
+                } else {
+                    Ok(())
+                };
 
                 BookStatus {
                     name: book_src.get_name().to_string(),
                     src: book_dst.get_path().to_path_buf(),
                     dst: dest_path.to_path_buf(),
                     status: {
-                        match fs::rename(book_dst.get_path(), dest_path) {
-                            Err(e) => BookCopyMoveStatus::NotMovedWithError(e.to_string()),
-                            Ok(_) => BookCopyMoveStatus::Moved,
+                        if let Ok(_) = status {
+                            match fs::rename(book_dst.get_path(), dest_path) {
+                                Err(e) => BookCopyMoveStatus::NotMovedWithError(e.to_string()),
+                                Ok(_) => BookCopyMoveStatus::Moved,
+                            }
+                        } else {
+                            BookCopyMoveStatus::NotMovedWithError(status.err().unwrap().to_string())
                         }
                     },
                 }
