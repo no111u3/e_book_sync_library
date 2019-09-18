@@ -49,7 +49,7 @@ fn main() {
         (Some(source), Some(destination)) => (PathBuf::from(source), PathBuf::from(destination)),
         (_, _) => {
             println!("Parse config to extract source/destination paths");
-        
+
             let path = match matches.value_of("config") {
                 Some(config) => PathBuf::from(config),
                 _ => {
@@ -61,12 +61,12 @@ fn main() {
                     default_path
                 }
             };
-            
+
             if !path.exists() {
                 println!("Config: {} doesn't exist", path.to_str().unwrap());
                 process::exit(1);
             }
-            
+
             let config = Config::new(path);
 
             config.parse()
@@ -83,9 +83,12 @@ fn main() {
         println!("Source path: {} doesn't exist", source.to_str().unwrap());
         process::exit(1);
     }
-    
+
     if !destination.exists() {
-        println!("Source path: {} doesn't exist", destination.to_str().unwrap());
+        println!(
+            "Source path: {} doesn't exist",
+            destination.to_str().unwrap()
+        );
         process::exit(1);
     }
 
