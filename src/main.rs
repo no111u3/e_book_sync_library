@@ -86,7 +86,7 @@ fn main() {
 
     if !destination.exists() {
         println!(
-            "Source path: {} doesn't exist",
+            "Destination path: {} doesn't exist",
             destination.to_str().unwrap()
         );
         process::exit(1);
