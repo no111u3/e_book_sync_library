@@ -4,6 +4,7 @@ mod config;
 mod indexer;
 mod updater;
 
+use std::env;
 use std::path::PathBuf;
 
 use clap::{App, Arg};
@@ -45,14 +46,21 @@ fn main() {
     let (source, destination) = match (matches.value_of("source"), matches.value_of("destination"))
     {
         (Some(source), Some(destination)) => (PathBuf::from(source), PathBuf::from(destination)),
-        (_, _) => match matches.value_of("config") {
-            Some(config) => {
-                let config = Config::new(PathBuf::from(config));
+        (_, _) => {
+            let config = Config::new(match matches.value_of("config") {
+                Some(config) => PathBuf::from(config),
+                _ => {
+                    let mut default_path = PathBuf::from(env::var("HOME").unwrap());
+                    default_path.push(".config");
+                    default_path.push(env!("CARGO_PKG_NAME"));
+                    default_path.push("config.yaml");
 
-                config.parse()
-            }
-            _ => (PathBuf::new(), PathBuf::new()),
-        },
+                    default_path
+                }
+            });
+
+            config.parse()
+        }
     };
 
     println!(
