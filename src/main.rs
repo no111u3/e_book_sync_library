@@ -6,6 +6,7 @@ mod updater;
 
 use std::env;
 use std::path::PathBuf;
+use std::process;
 
 use clap::{App, Arg};
 
@@ -47,7 +48,9 @@ fn main() {
     {
         (Some(source), Some(destination)) => (PathBuf::from(source), PathBuf::from(destination)),
         (_, _) => {
-            let config = Config::new(match matches.value_of("config") {
+            println!("Parse config to extract source/destination paths");
+        
+            let path = match matches.value_of("config") {
                 Some(config) => PathBuf::from(config),
                 _ => {
                     let mut default_path = PathBuf::from(env::var("HOME").unwrap());
@@ -57,7 +60,14 @@ fn main() {
 
                     default_path
                 }
-            });
+            };
+            
+            if !path.exists() {
+                println!("Config: {} doesn't exist", path.to_str().unwrap());
+                process::exit(1);
+            }
+            
+            let config = Config::new(path);
 
             config.parse()
         }
@@ -68,6 +78,16 @@ fn main() {
         source.to_str().unwrap(),
         destination.to_str().unwrap()
     );
+
+    if !source.exists() {
+        println!("Source path: {} doesn't exist", source.to_str().unwrap());
+        process::exit(1);
+    }
+    
+    if !destination.exists() {
+        println!("Source path: {} doesn't exist", destination.to_str().unwrap());
+        process::exit(1);
+    }
 
     let uper = Updater::new(source.clone(), destination.clone());
 
