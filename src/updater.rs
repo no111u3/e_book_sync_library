@@ -325,12 +325,13 @@ mod tests {
             PathBuf::from("tests/update_files/foreign"),
         );
 
-        let delete: std::io::Result<()> = (|| {
+        let delete: fn() -> std::io::Result<()> = || {
             fs::remove_file("tests/update_files/foreign/file_three.txt")?;
             fs::remove_file("tests/update_files/local/file_four.txt")?;
             Ok(())
-        })();
-        match delete {
+        };
+
+        match delete() {
             Err(e) => panic!("Delete error: {}", e),
             Ok(_) => (),
         }
@@ -363,5 +364,20 @@ mod tests {
 
         let ixer_res: Vec<_> = from_foreign.iter().cloned().collect();
         assert_eq!(ixer_res, []);
+
+        match delete() {
+            Err(e) => panic!("Delete error: {}", e),
+            Ok(_) => (),
+        }
+
+        let mut results_of_copy_two = uper.update(Update::OnlyFromLocal);
+        results_of_copy_two.append(&mut uper.update(Update::OnlyFromForeign));
+
+        let results_of_copy_two = results_of_copy_two
+            .iter()
+            .map(|e| (e.get_name().to_string(), e.get_status().clone()))
+            .collect::<Vec<(String, BookCopyMoveStatus)>>();
+
+        assert_eq!(results_of_copy, results_of_copy_two);
     }
 }
