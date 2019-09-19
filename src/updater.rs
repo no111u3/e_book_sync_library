@@ -80,7 +80,7 @@ fn create_dir_for_path(path: &PathBuf) -> io::Result<()> {
     }
 }
 
-fn copy_files(books: Bookshelf, destination: PathBuf) -> Vec<BookStatus> {
+fn copy_files(books: Bookshelf, destination: &PathBuf) -> Vec<BookStatus> {
     books
         .iter()
         .map(|b| {
@@ -176,14 +176,14 @@ impl Updater {
         };
 
         match update {
-            OnlyFromLocal => copy_files(from_local, self.foreign.clone()),
+            OnlyFromLocal => copy_files(from_local, &self.foreign),
             OnlyFromLocalSync => move_files(from_local, from_foreign),
-            OnlyFromForeign => copy_files(from_foreign, self.local.clone()),
+            OnlyFromForeign => copy_files(from_foreign, &self.local),
             OnlyFromForeignSync => move_files(from_foreign, from_local),
             Bidirectional => {
                 let mut results_of_copy: Vec<BookStatus> = Vec::new();
-                results_of_copy.append(&mut copy_files(from_local, self.foreign.clone()));
-                results_of_copy.append(&mut copy_files(from_foreign, self.local.clone()));
+                results_of_copy.append(&mut copy_files(from_local, &self.foreign));
+                results_of_copy.append(&mut copy_files(from_foreign, &self.local));
                 results_of_copy
             }
         }
@@ -277,7 +277,7 @@ mod tests {
             ]
         );
 
-        let results_of_copy = copy_files(from_local, from_foreign.get_path().to_path_buf())
+        let results_of_copy = copy_files(from_local, from_foreign.get_path())
             .iter()
             .map(|e| (e.get_name().to_string(), e.get_status().clone()))
             .collect::<Vec<(String, BookTransferStatus)>>();
