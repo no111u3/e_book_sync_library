@@ -1,3 +1,4 @@
+use std::fmt;
 use std::fs;
 use std::path::PathBuf;
 
@@ -18,11 +19,24 @@ pub enum Update {
 }
 
 #[derive(Debug, PartialEq, Clone)]
-pub enum BookCopyMoveStatus {
+pub enum BookTransferStatus {
     Copied,
-    NotCopiedWithError(String),
     Moved,
-    NotMovedWithError(String),
+    Error(String),
+}
+
+impl fmt::Display for BookTransferStatus {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(
+            f,
+            "{}",
+            match self {
+                BookTransferStatus::Copied => String::from("Copied"),
+                BookTransferStatus::Moved => String::from("Moved"),
+                BookTransferStatus::Error(e) => format!("Move error: {}", e),
+            }
+        )
+    }
 }
 
 #[derive(Debug, PartialEq, Clone)]
@@ -30,7 +44,7 @@ pub struct BookStatus {
     name: String,
     src: PathBuf,
     dst: PathBuf,
-    status: BookCopyMoveStatus,
+    status: BookTransferStatus,
 }
 
 impl BookStatus {
@@ -46,7 +60,7 @@ impl BookStatus {
         &self.dst
     }
 
-    pub fn get_status(&self) -> &BookCopyMoveStatus {
+    pub fn get_status(&self) -> &BookTransferStatus {
         &self.status
     }
 }
@@ -90,11 +104,11 @@ impl Updater {
                     dst: dest_path.to_path_buf(),
                     status: if let Ok(_) = status {
                         match fs::copy(b.get_path(), dest_path) {
-                            Err(e) => BookCopyMoveStatus::NotCopiedWithError(e.to_string()),
-                            Ok(_) => BookCopyMoveStatus::Copied,
+                            Err(e) => BookTransferStatus::Error(e.to_string()),
+                            Ok(_) => BookTransferStatus::Copied,
                         }
                     } else {
-                        BookCopyMoveStatus::NotCopiedWithError(status.err().unwrap().to_string())
+                        BookTransferStatus::Error(status.err().unwrap().to_string())
                     },
                 }
             })
@@ -140,11 +154,11 @@ impl Updater {
                     status: {
                         if let Ok(_) = status {
                             match fs::rename(book_dst.get_path(), dest_path) {
-                                Err(e) => BookCopyMoveStatus::NotMovedWithError(e.to_string()),
-                                Ok(_) => BookCopyMoveStatus::Moved,
+                                Err(e) => BookTransferStatus::Error(e.to_string()),
+                                Ok(_) => BookTransferStatus::Moved,
                             }
                         } else {
-                            BookCopyMoveStatus::NotMovedWithError(status.err().unwrap().to_string())
+                            BookTransferStatus::Error(status.err().unwrap().to_string())
                         }
                     },
                 }
@@ -180,7 +194,7 @@ mod tests {
     use std::fs;
     use std::path::PathBuf;
 
-    use super::BookCopyMoveStatus;
+    use super::BookTransferStatus;
     use super::Update;
     use super::Updater;
     use crate::book::Book;
@@ -268,14 +282,14 @@ mod tests {
             .copy_files(from_local, from_foreign.get_path().to_path_buf())
             .iter()
             .map(|e| (e.get_name().to_string(), e.get_status().clone()))
-            .collect::<Vec<(String, BookCopyMoveStatus)>>();
+            .collect::<Vec<(String, BookTransferStatus)>>();
         assert_eq!(
             results_of_copy,
             [
-                (String::from("file_four.txt"), BookCopyMoveStatus::Copied),
-                (String::from("file_one.txt"), BookCopyMoveStatus::Copied),
-                (String::from("file_three.txt"), BookCopyMoveStatus::Copied),
-                (String::from("file_two.txt"), BookCopyMoveStatus::Copied),
+                (String::from("file_four.txt"), BookTransferStatus::Copied),
+                (String::from("file_one.txt"), BookTransferStatus::Copied),
+                (String::from("file_three.txt"), BookTransferStatus::Copied),
+                (String::from("file_two.txt"), BookTransferStatus::Copied),
             ]
         );
 
@@ -311,10 +325,10 @@ mod tests {
             .move_files(from_local, from_foreign)
             .iter()
             .map(|e| (e.get_name().to_string(), e.get_status().clone()))
-            .collect::<Vec<(String, BookCopyMoveStatus)>>();
+            .collect::<Vec<(String, BookTransferStatus)>>();
         assert_eq!(
             results_of_move,
-            [(String::from("file_four.txt"), BookCopyMoveStatus::Moved),]
+            [(String::from("file_four.txt"), BookTransferStatus::Moved),]
         );
     }
 
@@ -348,12 +362,12 @@ mod tests {
             .update(Update::Bidirectional)
             .iter()
             .map(|e| (e.get_name().to_string(), e.get_status().clone()))
-            .collect::<Vec<(String, BookCopyMoveStatus)>>();
+            .collect::<Vec<(String, BookTransferStatus)>>();
         assert_eq!(
             results_of_copy,
             [
-                (String::from("file_three.txt"), BookCopyMoveStatus::Copied),
-                (String::from("file_four.txt"), BookCopyMoveStatus::Copied),
+                (String::from("file_three.txt"), BookTransferStatus::Copied),
+                (String::from("file_four.txt"), BookTransferStatus::Copied),
             ]
         );
 
@@ -376,7 +390,7 @@ mod tests {
         let results_of_copy_two = results_of_copy_two
             .iter()
             .map(|e| (e.get_name().to_string(), e.get_status().clone()))
-            .collect::<Vec<(String, BookCopyMoveStatus)>>();
+            .collect::<Vec<(String, BookTransferStatus)>>();
 
         assert_eq!(results_of_copy, results_of_copy_two);
     }

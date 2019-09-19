@@ -11,7 +11,7 @@ use std::process;
 use clap::{App, Arg};
 
 use config::Config;
-use updater::{BookCopyMoveStatus, Update, Updater};
+use updater::{Update, Updater};
 
 fn main() {
     let matches = App::new("Sync your e-book library")
@@ -98,11 +98,7 @@ fn main() {
         println!(
             "{} {} => from: {} to: {}",
             book_status.get_name(),
-            match book_status.get_status() {
-                BookCopyMoveStatus::Copied => String::from("Copied"),
-                BookCopyMoveStatus::NotCopiedWithError(e) => format!("Copy error: {}", e),
-                _ => String::from("Unexpected error"),
-            },
+            book_status.get_status(),
             book_status
                 .get_src()
                 .strip_prefix(&source)
@@ -122,11 +118,7 @@ fn main() {
         println!(
             "{} {} <= from: {} to: {}",
             book_status.get_name(),
-            match book_status.get_status() {
-                BookCopyMoveStatus::Moved => String::from("Movied"),
-                BookCopyMoveStatus::NotMovedWithError(e) => format!("Move error: {}", e),
-                _ => String::from("Unexpected error"),
-            },
+            book_status.get_status(),
             book_status
                 .get_src()
                 .strip_prefix(&source)
