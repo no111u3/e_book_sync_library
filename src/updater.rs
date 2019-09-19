@@ -65,6 +65,92 @@ impl BookStatus {
     }
 }
 
+fn cross_diff((local, foreign): (Bookshelf, Bookshelf)) -> (Bookshelf, Bookshelf) {
+    (local.difference(&foreign), foreign.difference(&local))
+}
+
+fn copy_files(books: Bookshelf, destination: PathBuf) -> Vec<BookStatus> {
+    books
+        .iter()
+        .map(|b| {
+            let mut dest_path = destination.to_path_buf();
+            dest_path.push(b.get_path().strip_prefix(books.get_path()).unwrap());
+            let dest_path_dir = dest_path.parent().unwrap();
+
+            let status = if !dest_path_dir.exists() {
+                fs::create_dir(dest_path_dir)
+            } else {
+                Ok(())
+            };
+
+            BookStatus {
+                name: b.get_name().to_string(),
+                src: b.get_path().to_path_buf(),
+                dst: dest_path.to_path_buf(),
+                status: if let Ok(_) = status {
+                    match fs::copy(b.get_path(), dest_path) {
+                        Err(e) => BookTransferStatus::Error(e.to_string()),
+                        Ok(_) => BookTransferStatus::Copied,
+                    }
+                } else {
+                    BookTransferStatus::Error(status.err().unwrap().to_string())
+                },
+            }
+        })
+        .collect()
+}
+
+fn move_files(books_src: Bookshelf, books_dst: Bookshelf) -> Vec<BookStatus> {
+    books_src
+        .iter()
+        .zip(books_dst.iter())
+        .filter(|books_to_alloved| {
+            let (book_src, book_dst) = books_to_alloved;
+            if book_src.get_path().strip_prefix(books_src.get_path())
+                != book_dst.get_path().strip_prefix(books_dst.get_path())
+            {
+                true
+            } else {
+                false
+            }
+        })
+        .map(|books_to_move| {
+            let (book_src, book_dst) = books_to_move;
+
+            let mut dest_path = books_dst.get_path().to_path_buf();
+            dest_path.push(
+                book_src
+                    .get_path()
+                    .strip_prefix(books_src.get_path())
+                    .unwrap(),
+            );
+            let dest_path_dir = dest_path.parent().unwrap();
+
+            let status = if !dest_path_dir.exists() {
+                fs::create_dir(dest_path_dir)
+            } else {
+                Ok(())
+            };
+
+            BookStatus {
+                name: book_src.get_name().to_string(),
+                src: book_dst.get_path().to_path_buf(),
+                dst: dest_path.to_path_buf(),
+                status: {
+                    if let Ok(_) = status {
+                        match fs::rename(book_dst.get_path(), dest_path) {
+                            Err(e) => BookTransferStatus::Error(e.to_string()),
+                            Ok(_) => BookTransferStatus::Moved,
+                        }
+                    } else {
+                        BookTransferStatus::Error(status.err().unwrap().to_string())
+                    }
+                },
+            }
+        })
+        .collect()
+}
+
 impl Updater {
     pub fn new(local: PathBuf, foreign: PathBuf) -> Self {
         Updater {
@@ -80,109 +166,23 @@ impl Updater {
         )
     }
 
-    fn cross_diff(&self, (local, foreign): (Bookshelf, Bookshelf)) -> (Bookshelf, Bookshelf) {
-        (local.difference(&foreign), foreign.difference(&local))
-    }
-
-    fn copy_files(&self, books: Bookshelf, destination: PathBuf) -> Vec<BookStatus> {
-        books
-            .iter()
-            .map(|b| {
-                let mut dest_path = destination.to_path_buf();
-                dest_path.push(b.get_path().strip_prefix(books.get_path()).unwrap());
-                let dest_path_dir = dest_path.parent().unwrap();
-
-                let status = if !dest_path_dir.exists() {
-                    fs::create_dir(dest_path_dir)
-                } else {
-                    Ok(())
-                };
-
-                BookStatus {
-                    name: b.get_name().to_string(),
-                    src: b.get_path().to_path_buf(),
-                    dst: dest_path.to_path_buf(),
-                    status: if let Ok(_) = status {
-                        match fs::copy(b.get_path(), dest_path) {
-                            Err(e) => BookTransferStatus::Error(e.to_string()),
-                            Ok(_) => BookTransferStatus::Copied,
-                        }
-                    } else {
-                        BookTransferStatus::Error(status.err().unwrap().to_string())
-                    },
-                }
-            })
-            .collect()
-    }
-
-    fn move_files(&self, books_src: Bookshelf, books_dst: Bookshelf) -> Vec<BookStatus> {
-        books_src
-            .iter()
-            .zip(books_dst.iter())
-            .filter(|books_to_alloved| {
-                let (book_src, book_dst) = books_to_alloved;
-                if book_src.get_path().strip_prefix(books_src.get_path())
-                    != book_dst.get_path().strip_prefix(books_dst.get_path())
-                {
-                    true
-                } else {
-                    false
-                }
-            })
-            .map(|books_to_move| {
-                let (book_src, book_dst) = books_to_move;
-
-                let mut dest_path = books_dst.get_path().to_path_buf();
-                dest_path.push(
-                    book_src
-                        .get_path()
-                        .strip_prefix(books_src.get_path())
-                        .unwrap(),
-                );
-                let dest_path_dir = dest_path.parent().unwrap();
-
-                let status = if !dest_path_dir.exists() {
-                    fs::create_dir(dest_path_dir)
-                } else {
-                    Ok(())
-                };
-
-                BookStatus {
-                    name: book_src.get_name().to_string(),
-                    src: book_dst.get_path().to_path_buf(),
-                    dst: dest_path.to_path_buf(),
-                    status: {
-                        if let Ok(_) = status {
-                            match fs::rename(book_dst.get_path(), dest_path) {
-                                Err(e) => BookTransferStatus::Error(e.to_string()),
-                                Ok(_) => BookTransferStatus::Moved,
-                            }
-                        } else {
-                            BookTransferStatus::Error(status.err().unwrap().to_string())
-                        }
-                    },
-                }
-            })
-            .collect()
-    }
-
     pub fn update(&self, update: Update) -> Vec<BookStatus> {
         use Update::*;
 
         let (from_local, from_foreign) = match update {
-            Bidirectional | OnlyFromLocal | OnlyFromForeign => self.cross_diff(self.scan_area()),
+            Bidirectional | OnlyFromLocal | OnlyFromForeign => cross_diff(self.scan_area()),
             OnlyFromLocalSync | OnlyFromForeignSync => self.scan_area(),
         };
 
         match update {
-            OnlyFromLocal => self.copy_files(from_local, self.foreign.clone()),
-            OnlyFromLocalSync => self.move_files(from_local, from_foreign),
-            OnlyFromForeign => self.copy_files(from_foreign, self.local.clone()),
-            OnlyFromForeignSync => self.move_files(from_foreign, from_local),
+            OnlyFromLocal => copy_files(from_local, self.foreign.clone()),
+            OnlyFromLocalSync => move_files(from_local, from_foreign),
+            OnlyFromForeign => copy_files(from_foreign, self.local.clone()),
+            OnlyFromForeignSync => move_files(from_foreign, from_local),
             Bidirectional => {
                 let mut results_of_copy: Vec<BookStatus> = Vec::new();
-                results_of_copy.append(&mut self.copy_files(from_local, self.foreign.clone()));
-                results_of_copy.append(&mut self.copy_files(from_foreign, self.local.clone()));
+                results_of_copy.append(&mut copy_files(from_local, self.foreign.clone()));
+                results_of_copy.append(&mut copy_files(from_foreign, self.local.clone()));
                 results_of_copy
             }
         }
@@ -194,13 +194,11 @@ mod tests {
     use std::fs;
     use std::path::PathBuf;
 
-    use super::BookTransferStatus;
-    use super::Update;
-    use super::Updater;
+    use super::*;
     use crate::book::Book;
 
     #[test]
-    fn scan_area() {
+    fn scan_area_check() {
         let uper = Updater::new(
             PathBuf::from("tests/scan_area/local"),
             PathBuf::from("tests/scan_area/foreign"),
@@ -230,13 +228,13 @@ mod tests {
     }
 
     #[test]
-    fn cross_diff() {
+    fn cross_diff_check() {
         let uper = Updater::new(
             PathBuf::from("tests/scan_area/local"),
             PathBuf::from("tests/scan_area/foreign"),
         );
 
-        let (from_local, from_foreign) = uper.cross_diff(uper.scan_area());
+        let (from_local, from_foreign) = cross_diff(uper.scan_area());
 
         let ixer_res: Vec<_> = from_local.iter().cloned().collect();
         assert_eq!(ixer_res, [Book::new(String::from("file_three.txt")),]);
@@ -246,7 +244,7 @@ mod tests {
     }
 
     #[test]
-    fn copy_files() {
+    fn copy_files_check() {
         let uper = Updater::new(
             PathBuf::from("tests/copy_files/local"),
             PathBuf::from("tests/copy_files/foreign"),
@@ -265,7 +263,7 @@ mod tests {
             Ok(_) => (),
         }
 
-        let (from_local, from_foreign) = uper.cross_diff(uper.scan_area());
+        let (from_local, from_foreign) = cross_diff(uper.scan_area());
 
         let ixer_res: Vec<_> = from_local.iter().cloned().collect();
         assert_eq!(
@@ -278,8 +276,7 @@ mod tests {
             ]
         );
 
-        let results_of_copy = uper
-            .copy_files(from_local, from_foreign.get_path().to_path_buf())
+        let results_of_copy = copy_files(from_local, from_foreign.get_path().to_path_buf())
             .iter()
             .map(|e| (e.get_name().to_string(), e.get_status().clone()))
             .collect::<Vec<(String, BookTransferStatus)>>();
@@ -293,14 +290,14 @@ mod tests {
             ]
         );
 
-        let (from_local, _) = uper.cross_diff(uper.scan_area());
+        let (from_local, _) = cross_diff(uper.scan_area());
 
         let ixer_res: Vec<_> = from_local.iter().cloned().collect();
         assert_eq!(ixer_res, []);
     }
 
     #[test]
-    fn move_files() {
+    fn move_files_check() {
         let uper = Updater::new(
             PathBuf::from("tests/move_files/local"),
             PathBuf::from("tests/move_files/foreign"),
@@ -321,8 +318,7 @@ mod tests {
 
         let (from_local, from_foreign) = uper.scan_area();
 
-        let results_of_move = uper
-            .move_files(from_local, from_foreign)
+        let results_of_move = move_files(from_local, from_foreign)
             .iter()
             .map(|e| (e.get_name().to_string(), e.get_status().clone()))
             .collect::<Vec<(String, BookTransferStatus)>>();
@@ -333,7 +329,7 @@ mod tests {
     }
 
     #[test]
-    fn update_files() {
+    fn update_files_check() {
         let uper = Updater::new(
             PathBuf::from("tests/update_files/local"),
             PathBuf::from("tests/update_files/foreign"),
@@ -350,7 +346,7 @@ mod tests {
             Ok(_) => (),
         }
 
-        let (from_local, from_foreign) = uper.cross_diff(uper.scan_area());
+        let (from_local, from_foreign) = cross_diff(uper.scan_area());
 
         let ixer_res: Vec<_> = from_local.iter().cloned().collect();
         assert_eq!(ixer_res, [Book::new(String::from("file_three.txt")),]);
@@ -371,7 +367,7 @@ mod tests {
             ]
         );
 
-        let (from_local, from_foreign) = uper.cross_diff(uper.scan_area());
+        let (from_local, from_foreign) = cross_diff(uper.scan_area());
 
         let ixer_res: Vec<_> = from_local.iter().cloned().collect();
         assert_eq!(ixer_res, []);
