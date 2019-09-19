@@ -1,5 +1,6 @@
 use std::fmt;
 use std::fs;
+use std::io;
 use std::path::PathBuf;
 
 use crate::bookshelf::Bookshelf;
@@ -69,19 +70,24 @@ fn cross_diff((local, foreign): (Bookshelf, Bookshelf)) -> (Bookshelf, Bookshelf
     (local.difference(&foreign), foreign.difference(&local))
 }
 
+fn create_dir_for_path(path: &PathBuf) -> io::Result<()> {
+    let path_dir = path.parent().unwrap();
+
+    if !path_dir.exists() {
+        fs::create_dir(path_dir)
+    } else {
+        Ok(())
+    }
+}
+
 fn copy_files(books: Bookshelf, destination: PathBuf) -> Vec<BookStatus> {
     books
         .iter()
         .map(|b| {
             let mut dest_path = destination.to_path_buf();
             dest_path.push(b.get_path().strip_prefix(books.get_path()).unwrap());
-            let dest_path_dir = dest_path.parent().unwrap();
 
-            let status = if !dest_path_dir.exists() {
-                fs::create_dir(dest_path_dir)
-            } else {
-                Ok(())
-            };
+            let status = create_dir_for_path(&dest_path);
 
             BookStatus {
                 name: b.get_name().to_string(),
@@ -124,13 +130,8 @@ fn move_files(books_src: Bookshelf, books_dst: Bookshelf) -> Vec<BookStatus> {
                     .strip_prefix(books_src.get_path())
                     .unwrap(),
             );
-            let dest_path_dir = dest_path.parent().unwrap();
 
-            let status = if !dest_path_dir.exists() {
-                fs::create_dir(dest_path_dir)
-            } else {
-                Ok(())
-            };
+            let status = create_dir_for_path(&dest_path);
 
             BookStatus {
                 name: book_src.get_name().to_string(),
