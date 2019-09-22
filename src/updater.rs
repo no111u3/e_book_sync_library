@@ -110,15 +110,16 @@ fn move_files(books_src: Bookshelf, books_dst: Bookshelf) -> Vec<BookStatus> {
     books_src
         .iter()
         .zip(books_dst.iter())
+        .filter(|books_is_equal| {
+            let (book_src, book_dst) = books_is_equal;
+
+            book_src.get_name() == book_dst.get_name()
+        })
         .filter(|books_to_alloved| {
             let (book_src, book_dst) = books_to_alloved;
-            if book_src.get_path().strip_prefix(books_src.get_path())
+
+            book_src.get_path().strip_prefix(books_src.get_path())
                 != book_dst.get_path().strip_prefix(books_dst.get_path())
-            {
-                true
-            } else {
-                false
-            }
         })
         .map(|books_to_move| {
             let (book_src, book_dst) = books_to_move;
