@@ -69,7 +69,13 @@ fn main() {
 
             let config = Config::new(path);
 
-            config.parse()
+            match config.parse() {
+                Ok(paths) => paths,
+                Err(e) => {
+                    println!("Error for parse config: {}", e);
+                    process::exit(1);
+                }
+            }
         }
     };
 
