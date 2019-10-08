@@ -1,17 +1,11 @@
-mod book;
-mod bookshelf;
-mod config;
-mod indexer;
-mod updater;
-
 use std::env;
 use std::path::PathBuf;
 use std::process;
 
 use clap::{App, Arg};
 
-use config::Config;
-use updater::{Update, Updater};
+use e_book_sync_library::config::Config;
+use e_book_sync_library::updater::{Update, Updater};
 
 fn main() {
     let matches = App::new("Sync your e-book library")
