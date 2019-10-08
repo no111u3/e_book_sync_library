@@ -28,17 +28,17 @@ impl Config {
         }
 
         let mut f = File::open(self.path.clone())
-            .or_else(|e| Err(format!("fail to open script with error: {}", e)))?;
+            .or_else(|e| Err(format!("fail to open config with error: {}", e)))?;
 
         let mut s = String::new();
         f.read_to_string(&mut s)
-            .or_else(|e| Err(format!("fail to read script with error: {}", e)))?;
+            .or_else(|e| Err(format!("fail to read config with error: {}", e)))?;
 
         let ConfigStorage {
             source,
             destination,
         } = serde_yaml::from_str(&s)
-            .or_else(|e| Err(format!("fail to read script with error: {}", e)))?;
+            .or_else(|e| Err(format!("fail to parse config with error: {}", e)))?;
 
         Ok((source, destination))
     }
