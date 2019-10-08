@@ -34,7 +34,10 @@ impl Config {
         f.read_to_string(&mut s)
             .or_else(|e| Err(format!("fail to read script with error: {}", e)))?;
 
-        let ConfigStorage { source, destination } = serde_yaml::from_str(&s)
+        let ConfigStorage {
+            source,
+            destination,
+        } = serde_yaml::from_str(&s)
             .or_else(|e| Err(format!("fail to read script with error: {}", e)))?;
 
         Ok((source, destination))
