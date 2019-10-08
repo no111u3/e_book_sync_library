@@ -1,3 +1,7 @@
+//! Core module of e-Book sync library
+//!
+//! Main entities and facilities
+
 pub mod book;
 pub mod bookshelf;
 pub mod config;

@@ -1,3 +1,7 @@
+//! Config entity
+//!
+//! Main config storage - store synchronization paths
+
 use std::fs::File;
 use std::io::prelude::*;
 use std::path::PathBuf;

@@ -1,3 +1,7 @@
+//! Indexer entity
+//!
+//! Create file index, parsing through walking directory
+
 use std::path::PathBuf;
 use walkdir::WalkDir;
 

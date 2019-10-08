@@ -1,3 +1,7 @@
+//! Update entity
+//!
+//! Update remote and local library
+
 use std::fmt;
 use std::fs;
 use std::io;

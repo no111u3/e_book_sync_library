@@ -1,3 +1,7 @@
+//! Book entity
+//!
+//! Book representation with internal helpers
+
 use std::fmt;
 use std::path::PathBuf;
 

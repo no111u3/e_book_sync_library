@@ -1,3 +1,7 @@
+//! Bookshelf entity
+//!
+//! Collect books and other stuff
+
 use std::collections::BTreeSet;
 use std::path::PathBuf;
 
