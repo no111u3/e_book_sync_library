@@ -1,3 +1,7 @@
+//! Update entity
+//!
+//! Update remote and local library
+
 use std::fmt;
 use std::fs;
 use std::io;
@@ -155,10 +159,7 @@ fn move_files(books_src: Bookshelf, books_dst: Bookshelf) -> Vec<BookStatus> {
 
 impl Updater {
     pub fn new(local: PathBuf, foreign: PathBuf) -> Self {
-        Updater {
-            local: local,
-            foreign: foreign,
-        }
+        Updater { local, foreign }
     }
 
     fn scan_area(&self) -> (Bookshelf, Bookshelf) {

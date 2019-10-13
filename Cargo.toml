@@ -1,11 +1,16 @@
 [package]
 name = "e_book_sync_library"
-version = "0.2.0"
+version = "0.3.0"
 authors = ["Boris Vinogradov <no111u3@gmail.com>"]
 description = "Synchonize e-book with your local e-library"
 edition = "2018"
 
+[lib]
+name = "e_book_sync_library"
+path = "src/lib.rs"
+
 [dependencies]
 clap = "2.33.0"
 walkdir = "2.2.9"
-yaml-rust = "0.4.3"
+serde = { version = "1.0", features = ["derive"] }
+serde_yaml = "0.8"

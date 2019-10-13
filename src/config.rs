@@ -1,11 +1,21 @@
+//! Config entity
+//!
+//! Main config storage - store synchronization paths
+
 use std::fs::File;
 use std::io::prelude::*;
 use std::path::PathBuf;
 
-use yaml_rust::YamlLoader;
+use serde::{Deserialize, Serialize};
 
 pub struct Config {
     path: PathBuf,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct ConfigStorage {
+    source: PathBuf,
+    destination: PathBuf,
 }
 
 impl Config {
@@ -13,20 +23,28 @@ impl Config {
         Config { path }
     }
 
-    pub fn parse(&self) -> Result<(PathBuf, PathBuf), &'static str> {
-        let mut f = File::open(self.path.clone()).unwrap();
+    pub fn parse(&self) -> Result<(PathBuf, PathBuf), String> {
+        if !self.path.exists() {
+            return Err(format!(
+                "Script: {} doesn't exist",
+                self.path.to_str().unwrap()
+            ));
+        }
+
+        let mut f = File::open(self.path.clone())
+            .or_else(|e| Err(format!("fail to open config with error: {}", e)))?;
 
         let mut s = String::new();
-        f.read_to_string(&mut s).unwrap();
+        f.read_to_string(&mut s)
+            .or_else(|e| Err(format!("fail to read config with error: {}", e)))?;
 
-        let doc = &YamlLoader::load_from_str(&s).unwrap()[0];
+        let ConfigStorage {
+            source,
+            destination,
+        } = serde_yaml::from_str(&s)
+            .or_else(|e| Err(format!("fail to parse config with error: {}", e)))?;
 
-        let source = doc["source"].as_str().ok_or("fail to read source path")?;
-        let destination = doc["destination"]
-            .as_str()
-            .ok_or("fail to read source path")?;
-
-        Ok((PathBuf::from(source), PathBuf::from(destination)))
+        Ok((source, destination))
     }
 }
 

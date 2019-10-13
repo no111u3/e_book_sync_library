@@ -1,17 +1,11 @@
-mod book;
-mod bookshelf;
-mod config;
-mod indexer;
-mod updater;
-
 use std::env;
 use std::path::PathBuf;
 use std::process;
 
 use clap::{App, Arg};
 
-use config::Config;
-use updater::{Update, Updater};
+use e_book_sync_library::config::Config;
+use e_book_sync_library::updater::{Update, Updater};
 
 fn main() {
     let matches = App::new("Sync your e-book library")
@@ -102,7 +96,27 @@ fn main() {
 
     for book_status in uper.update(Update::OnlyFromLocal) {
         println!(
-            "{} {} => from: {} to: {}",
+            "{} {} +> from: {} to: {}",
+            book_status.get_name(),
+            book_status.get_status(),
+            book_status
+                .get_src()
+                .strip_prefix(&source)
+                .unwrap()
+                .to_str()
+                .unwrap(),
+            book_status
+                .get_dst()
+                .strip_prefix(&destination)
+                .unwrap()
+                .to_str()
+                .unwrap()
+        );
+    }
+
+    for book_status in uper.update(Update::OnlyFromForeign) {
+        println!(
+            "{} {} <+ from: {} to: {}",
             book_status.get_name(),
             book_status.get_status(),
             book_status
