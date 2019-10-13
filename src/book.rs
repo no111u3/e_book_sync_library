@@ -32,6 +32,10 @@ impl Book {
     pub fn get_path(&self) -> &PathBuf {
         &self.path
     }
+
+    pub fn exists(&self) -> bool {
+        self.path.exists()
+    }
 }
 
 impl fmt::Display for Book {
@@ -91,6 +95,19 @@ mod tests {
         assert_eq!(
             Book::from(PathBuf::from("/local/test_book.txt")),
             Book::from(PathBuf::from("/foreign/test_book.txt"))
-        )
+        );
+    }
+
+    #[test]
+    fn existing_checks() {
+        assert_eq!(
+            Book::from(PathBuf::from("tests/iterate/file_one.txt")).exists(),
+            true
+        );
+
+        assert_eq!(
+            Book::from(PathBuf::from("tests/iterate/file_four.txt")).exists(),
+            false
+        );
     }
 }
