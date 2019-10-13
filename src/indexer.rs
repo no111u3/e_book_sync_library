@@ -3,7 +3,7 @@
 //! Create file index, parsing through walking directory
 
 use std::path::PathBuf;
-use walkdir::WalkDir;
+use walkdir::{DirEntry, WalkDir};
 
 use crate::book::Book;
 use crate::bookshelf::Bookshelf;
@@ -27,20 +27,49 @@ impl Indexer {
                 bs
             })
     }
+
+    pub fn index_map(&self, map: fn(de: &DirEntry)) -> Bookshelf {
+        WalkDir::new(self.path.clone())
+            .into_iter()
+            .filter_map(|e| e.ok())
+            .filter(|e| e.file_type().is_file())
+            .map(|e| {
+                map(&e);
+                e
+            })
+            .fold(Bookshelf::from(self.path.clone()), |mut bs, entry| {
+                bs.add(Book::from(entry.path().to_path_buf()));
+                bs
+            })
+    }
 }
 
 #[cfg(test)]
 mod tests {
-    use super::Indexer;
+    use super::*;
 
     #[test]
     fn iterate() {
-        use std::path::PathBuf;
-
-        use crate::book::Book;
-
         let ixer = Indexer::new(PathBuf::from("tests/iterate"));
         let ixer_res: Vec<_> = ixer.index().iter().cloned().collect();
+        assert_eq!(
+            ixer_res,
+            [
+                Book::new(String::from("file_one.txt")),
+                Book::new(String::from("file_three.txt")),
+                Book::new(String::from("file_two.txt")),
+            ]
+        );
+    }
+
+    #[test]
+    fn iterate_with_map() {
+        let ixer = Indexer::new(PathBuf::from("tests/iterate"));
+        let ixer_res: Vec<_> = ixer
+            .index_map(|de| assert_eq!(de.path().exists(), true))
+            .iter()
+            .cloned()
+            .collect();
         assert_eq!(
             ixer_res,
             [
