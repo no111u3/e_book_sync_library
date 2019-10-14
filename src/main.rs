@@ -92,9 +92,9 @@ fn main() {
         process::exit(1);
     }
 
-    let uper = Updater::new(source.clone(), destination.clone());
+    let updater = Updater::new(source.clone(), destination.clone());
 
-    for book_status in uper.update(Update::OnlyFromLocal) {
+    for book_status in updater.update(Update::OnlyFromLocal) {
         println!(
             "{} {} +> from: {} to: {}",
             book_status.get_name(),
@@ -114,7 +114,7 @@ fn main() {
         );
     }
 
-    for book_status in uper.update(Update::OnlyFromForeign) {
+    for book_status in updater.update(Update::OnlyFromForeign) {
         println!(
             "{} {} <+ from: {} to: {}",
             book_status.get_name(),
@@ -134,7 +134,7 @@ fn main() {
         );
     }
 
-    for book_status in uper.update(Update::OnlyFromForeignSync) {
+    for book_status in updater.update(Update::OnlyFromForeignSync) {
         println!(
             "{} {} <= from: {} to: {}",
             book_status.get_name(),
