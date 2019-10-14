@@ -3,6 +3,7 @@ use std::path::PathBuf;
 use std::process;
 
 use clap::{App, Arg};
+use dirs::config_dir;
 
 use e_book_sync_library::config::Config;
 use e_book_sync_library::updater::{Update, Updater};
@@ -47,8 +48,7 @@ fn main() {
             let path = match matches.value_of("config") {
                 Some(config) => PathBuf::from(config),
                 _ => {
-                    let mut default_path = PathBuf::from(env::var("HOME").unwrap());
-                    default_path.push(".config");
+                    let mut default_path = PathBuf::from(config_dir().unwrap());
                     default_path.push(env!("CARGO_PKG_NAME"));
                     default_path.push("config.yaml");
 
