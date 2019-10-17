@@ -31,7 +31,7 @@ pub enum BookTransferStatus {
 }
 
 impl fmt::Display for BookTransferStatus {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
             "{}",
