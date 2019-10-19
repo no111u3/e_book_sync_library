@@ -49,6 +49,13 @@ impl Bookshelf {
         }
     }
 
+    pub fn intersection(&self, other: &Self) -> Self {
+        Bookshelf {
+            books: self.books.intersection(&other.books).cloned().collect(),
+            path: self.path.clone(),
+        }
+    }
+
     pub fn iter(&self) -> impl Iterator<Item = &Book> {
         self.books.iter()
     }
@@ -109,5 +116,11 @@ mod tests {
 
         let diff2_to_1: Vec<_> = bs2.difference(&bs1).iter().cloned().collect();
         assert_eq!(diff2_to_1, [Book::new(String::from("Test book3"))]);
+
+        let inter1_to_2: Vec<_> = bs1.intersection(&bs2).iter().cloned().collect();
+        assert_eq!(inter1_to_2, [Book::new(String::from("Test book2"))]);
+
+        let inter2_to_1: Vec<_> = bs2.intersection(&bs1).iter().cloned().collect();
+        assert_eq!(inter2_to_1, [Book::new(String::from("Test book2"))]);
     }
 }
