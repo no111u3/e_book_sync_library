@@ -141,13 +141,13 @@ fn main() {
             book_status.get_status(),
             book_status
                 .get_src()
-                .strip_prefix(&source)
+                .strip_prefix(&destination)
                 .unwrap()
                 .to_str()
                 .unwrap(),
             book_status
                 .get_dst()
-                .strip_prefix(&destination)
+                .strip_prefix(&source)
                 .unwrap()
                 .to_str()
                 .unwrap()
