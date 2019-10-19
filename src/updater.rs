@@ -74,6 +74,10 @@ fn cross_diff((local, foreign): (Bookshelf, Bookshelf)) -> (Bookshelf, Bookshelf
     (local.difference(&foreign), foreign.difference(&local))
 }
 
+fn cross_inter((local, foreign): (Bookshelf, Bookshelf)) -> (Bookshelf, Bookshelf) {
+    (local.intersection(&foreign), foreign.intersection(&local))
+}
+
 fn create_dir_for_path(path: &PathBuf) -> io::Result<()> {
     let path_dir = path.parent().unwrap();
 
@@ -174,7 +178,7 @@ impl Updater {
 
         let (from_local, from_foreign) = match update {
             Bidirectional | OnlyFromLocal | OnlyFromForeign => cross_diff(self.scan_area()),
-            OnlyFromLocalSync | OnlyFromForeignSync => self.scan_area(),
+            OnlyFromLocalSync | OnlyFromForeignSync => cross_inter(self.scan_area()),
         };
 
         match update {
