@@ -94,6 +94,26 @@ fn main() {
 
     let updater = Updater::new(source.clone(), destination.clone());
 
+    for book_status in updater.update(Update::OnlyFromForeignSync) {
+        println!(
+            "{} {} <= from: {} to: {}",
+            book_status.get_name(),
+            book_status.get_status(),
+            book_status
+                .get_src()
+                .strip_prefix(&source)
+                .unwrap()
+                .to_str()
+                .unwrap(),
+            book_status
+                .get_dst()
+                .strip_prefix(&source)
+                .unwrap()
+                .to_str()
+                .unwrap()
+        );
+    }
+
     for book_status in updater.update(Update::OnlyFromLocal) {
         println!(
             "{} {} +> from: {} to: {}",
@@ -128,26 +148,6 @@ fn main() {
             book_status
                 .get_dst()
                 .strip_prefix(&destination)
-                .unwrap()
-                .to_str()
-                .unwrap()
-        );
-    }
-
-    for book_status in updater.update(Update::OnlyFromForeignSync) {
-        println!(
-            "{} {} <= from: {} to: {}",
-            book_status.get_name(),
-            book_status.get_status(),
-            book_status
-                .get_src()
-                .strip_prefix(&source)
-                .unwrap()
-                .to_str()
-                .unwrap(),
-            book_status
-                .get_dst()
-                .strip_prefix(&source)
                 .unwrap()
                 .to_str()
                 .unwrap()
