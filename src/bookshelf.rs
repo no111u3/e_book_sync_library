@@ -51,7 +51,14 @@ impl Bookshelf {
 
     pub fn intersection(&self, other: &Self) -> Self {
         Bookshelf {
-            books: self.books.intersection(&other.books).cloned().collect(),
+            books: self
+                .books
+                .intersection(&other.books)
+                // Mapping from self because intersection returns items from both,
+                // but we need items from self
+                .map(|x| self.books.get(x).unwrap())
+                .cloned()
+                .collect(),
             path: self.path.clone(),
         }
     }
