@@ -2,50 +2,23 @@ use std::env;
 use std::path::PathBuf;
 use std::process;
 
-use clap::{App, Arg};
 use dirs::config_dir;
 
+use structopt::StructOpt;
+
 use e_book_sync_library::config::Config;
+use e_book_sync_library::opt::Opt;
 use e_book_sync_library::updater::{Update, Updater};
 
 fn main() {
-    let matches = App::new("Sync your e-book library")
-        .version(env!("CARGO_PKG_VERSION"))
-        .author(env!("CARGO_PKG_AUTHORS"))
-        .about(env!("CARGO_PKG_DESCRIPTION"))
-        .arg(
-            Arg::with_name("source")
-                .short("s")
-                .long("src")
-                .value_name("SRC")
-                .help("Source sync directory, local folder")
-                .takes_value(true),
-        )
-        .arg(
-            Arg::with_name("destination")
-                .short("d")
-                .long("dst")
-                .value_name("DST")
-                .help("Destination directory, e-ink device folder")
-                .takes_value(true),
-        )
-        .arg(
-            Arg::with_name("config")
-                .short("c")
-                .long("cfg")
-                .value_name("CONFIG.yaml")
-                .help("Program configuration file with source/destination sync folders")
-                .takes_value(true),
-        )
-        .get_matches();
+    let opt = Opt::from_args();
 
-    let (source, destination) = match (matches.value_of("source"), matches.value_of("destination"))
-    {
-        (Some(source), Some(destination)) => (PathBuf::from(source), PathBuf::from(destination)),
+    let (source, destination) = match (opt.source, opt.destination) {
+        (Some(source), Some(destination)) => (source, destination),
         (_, _) => {
             println!("Parse config to extract source/destination paths");
 
-            let path = match matches.value_of("config") {
+            let path = match opt.config {
                 Some(config) => PathBuf::from(config),
                 _ => {
                     let mut default_path = PathBuf::from(config_dir().unwrap());
