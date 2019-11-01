@@ -23,13 +23,6 @@ impl Bookshelf {
         }
     }
 
-    pub fn from(path: PathBuf) -> Self {
-        Bookshelf {
-            books: BTreeSet::new(),
-            path,
-        }
-    }
-
     pub fn get_path(&self) -> &PathBuf {
         &self.path
     }
@@ -65,6 +58,15 @@ impl Bookshelf {
 
     pub fn iter(&self) -> impl Iterator<Item = &Book> {
         self.books.iter()
+    }
+}
+
+impl From<PathBuf> for Bookshelf {
+    fn from(path: PathBuf) -> Self {
+        Bookshelf {
+            books: BTreeSet::new(),
+            path,
+        }
     }
 }
 

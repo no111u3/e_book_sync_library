@@ -20,11 +20,6 @@ impl Book {
         }
     }
 
-    pub fn from(path: PathBuf) -> Self {
-        let name = path.file_name().unwrap().to_str().unwrap().to_string();
-        Book { name, path }
-    }
-
     pub fn get_name(&self) -> &String {
         &self.name
     }
@@ -35,6 +30,13 @@ impl Book {
 
     pub fn exists(&self) -> bool {
         self.path.exists()
+    }
+}
+
+impl From<PathBuf> for Book {
+    fn from(path: PathBuf) -> Self {
+        let name = path.file_name().unwrap().to_str().unwrap().to_string();
+        Book { name, path }
     }
 }
 
