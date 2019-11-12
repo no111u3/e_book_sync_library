@@ -350,6 +350,21 @@ mod tests {
             PathBuf::from("tests/update_files/foreign"),
         );
 
+        let (from_local, from_foreign) = cross_diff(uper.scan_area());
+
+        let ixer_res: Vec<_> = from_local.iter().cloned().collect();
+        assert_eq!(ixer_res, []);
+
+        let ixer_res: Vec<_> = from_foreign.iter().cloned().collect();
+        assert_eq!(ixer_res, []);
+
+        let results_of_copy = uper
+            .update(Update::Bidirectional)
+            .iter()
+            .map(|e| (e.get_name().to_string(), e.get_status().clone()))
+            .collect::<Vec<(String, BookTransferStatus)>>();
+        assert_eq!(results_of_copy, []);
+
         let delete: fn() -> std::io::Result<()> = || {
             fs::remove_file("tests/update_files/foreign/file_three.txt")?;
             fs::remove_file("tests/update_files/local/file_four.txt")?;
