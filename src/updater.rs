@@ -260,6 +260,11 @@ mod tests {
             PathBuf::from("tests/copy_files/foreign"),
         );
 
+        let (from_local, _) = cross_diff(uper.scan_area());
+
+        let ixer_res: Vec<_> = from_local.iter().cloned().collect();
+        assert_eq!(ixer_res, []);
+
         let delete: std::io::Result<()> = (|| {
             fs::remove_file("tests/copy_files/foreign/file_one.txt")?;
             fs::remove_file("tests/copy_files/foreign/file_two.txt")?;
