@@ -5,6 +5,9 @@
 use std::fmt;
 use std::path::PathBuf;
 
+use unicode_normalization::char::compose;
+use unicode_normalization::UnicodeNormalization;
+
 #[derive(Debug, Eq, Clone)]
 pub struct Book {
     name: String,
@@ -35,7 +38,14 @@ impl Book {
 
 impl From<PathBuf> for Book {
     fn from(path: PathBuf) -> Self {
-        let name = path.file_name().unwrap().to_str().unwrap().to_string();
+        let name = path
+            .file_name()
+            .unwrap()
+            .to_os_string()
+            .into_string()
+            .unwrap()
+            .nfc()
+            .collect();
         Book { name, path }
     }
 }
