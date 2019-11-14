@@ -9,6 +9,7 @@ use structopt::StructOpt;
 use e_book_sync_library::config::Config;
 use e_book_sync_library::opt::Opt;
 use e_book_sync_library::updater::{Update, Updater};
+use e_book_sync_library::utility::create_dir_for_path;
 
 fn main() {
     let opt = Opt::from_args();
@@ -29,11 +30,18 @@ fn main() {
             if opt.write {
                 println!("Write paths to config {}", config_path.to_str().unwrap());
 
-                let config = Config::new(config_path);
+                match create_dir_for_path(&config_path) {
+                    Ok(()) => {
+                        let config = Config::new(config_path);
 
-                match config.store(source.clone(), destination.clone()) {
-                    Ok(()) => println!("Paths stored to config successfully"),
-                    Err(e) => println!("Error for store config: {}", e),
+                        match config.store(source.clone(), destination.clone()) {
+                            Ok(()) => println!("Paths stored to config successfully"),
+                            Err(e) => println!("Error for store config: {}", e),
+                        }
+                    }
+                    Err(e) => {
+                        println!("Failed to create dir with error: {}", e);
+                    }
                 }
             }
 
