@@ -8,3 +8,4 @@ pub mod config;
 pub mod indexer;
 pub mod opt;
 pub mod updater;
+pub mod utility;

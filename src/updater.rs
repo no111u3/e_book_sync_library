@@ -4,11 +4,11 @@
 
 use std::fmt;
 use std::fs;
-use std::io;
 use std::path::PathBuf;
 
 use crate::bookshelf::Bookshelf;
 use crate::indexer::Indexer;
+use crate::utility::create_dir_for_path;
 
 pub struct Updater {
     local: PathBuf,
@@ -76,19 +76,6 @@ fn cross_diff((local, foreign): (Bookshelf, Bookshelf)) -> (Bookshelf, Bookshelf
 
 fn cross_inter((local, foreign): (Bookshelf, Bookshelf)) -> (Bookshelf, Bookshelf) {
     (local.intersection(&foreign), foreign.intersection(&local))
-}
-
-fn create_dir_for_path(path: &PathBuf) -> io::Result<()> {
-    let path_dir = path.parent().unwrap();
-
-    if !path_dir.exists() {
-        match create_dir_for_path(&path_dir.to_path_buf()) {
-            Ok(_) => fs::create_dir(path_dir),
-            Err(x) => Err(x),
-        }
-    } else {
-        Ok(())
-    }
 }
 
 fn copy_files(books: Bookshelf, destination: &PathBuf) -> Vec<BookStatus> {
