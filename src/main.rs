@@ -13,28 +13,41 @@ use e_book_sync_library::updater::{Update, Updater};
 fn main() {
     let opt = Opt::from_args();
 
+    let config_path = match opt.config {
+        Some(config) => PathBuf::from(config),
+        _ => {
+            let mut default_path = PathBuf::from(config_dir().unwrap());
+            default_path.push(env!("CARGO_PKG_NAME"));
+            default_path.push("config.yaml");
+
+            default_path
+        }
+    };
+
     let (source, destination) = match (opt.source, opt.destination) {
-        (Some(source), Some(destination)) => (source, destination),
+        (Some(source), Some(destination)) => {
+            if opt.write {
+                println!("Write paths to config {}", config_path.to_str().unwrap());
+
+                let config = Config::new(config_path);
+
+                match config.store(source.clone(), destination.clone()) {
+                    Ok(()) => println!("Paths stored to config successfully"),
+                    Err(e) => println!("Error for store config: {}", e),
+                }
+            }
+
+            (source, destination)
+        }
         (_, _) => {
             println!("Parse config to extract source/destination paths");
 
-            let path = match opt.config {
-                Some(config) => PathBuf::from(config),
-                _ => {
-                    let mut default_path = PathBuf::from(config_dir().unwrap());
-                    default_path.push(env!("CARGO_PKG_NAME"));
-                    default_path.push("config.yaml");
-
-                    default_path
-                }
-            };
-
-            if !path.exists() {
-                println!("Config: {} doesn't exist", path.to_str().unwrap());
+            if !config_path.exists() {
+                println!("Config: {} doesn't exist", config_path.to_str().unwrap());
                 process::exit(1);
             }
 
-            let config = Config::new(path);
+            let config = Config::new(config_path);
 
             match config.parse() {
                 Ok(paths) => paths,

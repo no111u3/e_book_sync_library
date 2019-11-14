@@ -18,4 +18,8 @@ pub struct Opt {
     /// Program configuration file with source/destination sync folders
     #[structopt(short, long, parse(from_os_str))]
     pub config: Option<PathBuf>,
+
+    /// Store options as new config
+    #[structopt(short, long)]
+    pub write: bool,
 }
