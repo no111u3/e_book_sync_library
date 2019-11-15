@@ -5,7 +5,6 @@
 use std::fmt;
 use std::path::PathBuf;
 
-use unicode_normalization::char::compose;
 use unicode_normalization::UnicodeNormalization;
 
 #[derive(Debug, Eq, Clone)]
