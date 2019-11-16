@@ -4,6 +4,9 @@ version = "0.3.5"
 authors = ["Boris Vinogradov <no111u3@gmail.com>"]
 description = "Synchonize e-book with your local e-library"
 edition = "2018"
+license = "Apache-2.0"
+keywords = ["sync", "utility", "e-book"]
+repository = "https://github.com/no111u3/e_book_sync_library"
 
 [lib]
 name = "e_book_sync_library"
@@ -16,6 +19,4 @@ walkdir = "2.2.9"
 serde = { version = "1.0", features = ["derive"] }
 serde_yaml = "0.8"
 dirs = "2.0"
-tokio = "0.1"
-futures = "0.1"
 unicode-normalization = "0.1"
