@@ -7,6 +7,7 @@ edition = "2018"
 license = "Apache-2.0"
 keywords = ["sync", "utility", "e-book"]
 repository = "https://github.com/no111u3/e_book_sync_library"
+readme = "README.md"
 
 [lib]
 name = "e_book_sync_library"
