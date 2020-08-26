@@ -22,6 +22,8 @@ impl Indexer {
             .into_iter()
             .filter_map(|e| e.ok())
             .filter(|e| e.file_type().is_file())
+            // NOTE: not index files begins with `.`
+            .filter(|e| !e.file_name().to_str().unwrap().starts_with("."))
             .fold(Bookshelf::from(self.path.clone()), |mut bs, entry| {
                 bs.add(Book::from(entry.path().to_path_buf()));
                 bs
@@ -33,6 +35,8 @@ impl Indexer {
             .into_iter()
             .filter_map(|e| e.ok())
             .filter(|e| e.file_type().is_file())
+            // NOTE: not index files begins with `.`
+            .filter(|e| !e.file_name().to_str().unwrap().starts_with("."))
             .map(|e| {
                 map(&e);
                 e
